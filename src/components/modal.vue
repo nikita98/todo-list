@@ -5,7 +5,7 @@
         <div class="modal__title">
           Создание/редактирование задачи
         </div>
-        <div class="modal__exit" v-on:click="exit"></div>
+        <div class="modal__exit" v-on:click="closeModal"></div>
       </div>
       <div class="modal__elem">
         <div class="modal__item modal__item_row">
@@ -41,13 +41,28 @@
           <input class="modal__input" type="text" v-model="plannedEnd" />
         </div>
       </div>
-      <div class="btn modal__btn" @click="add">Сохранить</div>
+      <div class="btn modal__btn" @click="editId ? change(editId) : add()">
+        Сохранить
+      </div>
     </div>
   </form>
 </template>
 
 <script>
+import { mapMutations, mapGetters } from "vuex";
+
 export default {
+  created() {
+    if (this.editId) {
+      let task = this.taskId(this.editId);
+      console.log(task + "adsasdasda");
+      this.description = task.description;
+      this.priority = this.unformatPriority(task.priority);
+      this.status = this.unformatStatus(task.status);
+      this.plannedEnd = task.plannedEnd;
+      this.description = task.description;
+    }
+  },
   data: function() {
     return {
       create: true,
@@ -58,13 +73,13 @@ export default {
       actualEnd: ""
     };
   },
+  computed: {
+    ...mapGetters(["taskId", "editId"])
+  },
   methods: {
-    exit: function() {
-      console.log(322);
-      this.$emit("exit", false);
-    },
+    ...mapMutations(["closeModal", "addTask", "changeTask"]),
     add() {
-      this.$store.commit("addTask", {
+      this.addTask({
         id: Math.random(),
         description: this.description,
         priority: this.formatPriority(this.priority),
@@ -72,14 +87,23 @@ export default {
         plannedEnd: this.plannedEnd,
         actualEnd: null
       });
-      console.log(this.formatPriority(this.priority));
-      console.log(this.formatStatus(this.status));
-      console.log(this.$store.getters.tasks);
+      this.closeModal();
+    },
+    change() {
+      this.changeTask({
+        id: this.editId,
+        description: this.description,
+        priority: this.formatPriority(this.priority),
+        status: this.formatStatus(this.status),
+        plannedEnd: this.plannedEnd,
+        actualEnd: null
+      });
+      this.closeModal();
     },
     formatStatus(st) {
       if (st === "Новый") {
         return 0;
-      } else if (st === "В процессе") {
+      } else if (st === "В работе") {
         return 1;
       } else {
         return 2;
@@ -92,6 +116,24 @@ export default {
         return 1;
       } else {
         return 2;
+      }
+    },
+    unformatStatus(st) {
+      if (!st) {
+        return "Новый";
+      } else if (st === 1) {
+        return "В работе";
+      } else {
+        return "Завершено";
+      }
+    },
+    unformatPriority(pr) {
+      if (!pr) {
+        return "Низкий";
+      } else if (pr === 1) {
+        return "Средний";
+      } else {
+        return "Высокий";
       }
     }
   }

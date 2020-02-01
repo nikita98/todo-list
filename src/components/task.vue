@@ -1,6 +1,6 @@
 <template>
-  <tr class="task">
-    <td>{{ task.description }}</td>
+  <tr class="task" @dblclick="openModal(id)">
+    <td class="task__long">{{ task.description }}</td>
     <td>{{ status(task.status) }}</td>
     <td>{{ priority(task.priority) }}</td>
     <td>{{ task.plannedEnd }}</td>
@@ -10,22 +10,26 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 
 export default {
   props: ["id"],
   computed: {
+    ...mapGetters(["taskId"]),
     task() {
-      return this.$store.getters.taskId(this.id);
+      return this.taskId(this.id);
     }
   },
   methods: {
-    ...mapMutations(["delTask"]),
+    ...mapMutations(["delTask", "openModal"]),
+    edit() {
+      this.$emit("edit", this.id);
+    },
     status(st) {
       if (!st) {
         return "Новый";
       } else if (st === 1) {
-        return "В процессе";
+        return "В работе";
       } else {
         return "Завершено";
       }
@@ -45,6 +49,12 @@ export default {
 
 <style scoped lang="scss">
 .task {
+  td {
+    border-bottom: 1px solid #000;
+  }
+  &__long {
+    width: 30%;
+  }
   &__delete {
     cursor: pointer;
     &:hover {

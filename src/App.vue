@@ -1,28 +1,60 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
-    <!-- <HelloWorld msg="Welcome to Your Vue.js App" /> -->
     <div id="todo">
       <h2>Задачи</h2>
       <div class="nav">
         <div class="nav__item">
-          <div class="btn" @click="ex">Добавить задачу</div>
-          <modal v-if="modal" v-on:exit="ex" />
-          <input type="text" class="input" placeholder="поиск" />
+          <div class="btn" @click="openModal(null)">Добавить задачу</div>
+          <modal v-if="isModal" />
+          <input
+            type="text"
+            class="input"
+            @keyup.enter="find = inputFind"
+            placeholder="поиск"
+            v-model="inputFind"
+          />
         </div>
         <div class="nav__item">
           <div class="sort">
-            <div class="sort__btn sort__btn_active">
-              Всего
+            <div
+              class="sort__btn"
+              v-bind:class="{ sort__btn_active: active === 0 }"
+              @click="
+                setTasksPull(-1);
+                active = 0;
+              "
+            >
+              Всего {{ tasks.length }}
             </div>
-            <div class="sort__btn">
-              Новых
+            <div
+              class="sort__btn"
+              v-bind:class="{ sort__btn_active: active === 1 }"
+              @click="
+                setTasksPull(0);
+                active = 1;
+              "
+            >
+              Новых {{ taskFilter(0).length }}
             </div>
-            <div class="sort__btn">
-              В работе
+            <div
+              class="sort__btn"
+              v-bind:class="{ sort__btn_active: active === 2 }"
+              @click="
+                setTasksPull(1);
+                active = 2;
+              "
+            >
+              В работе {{ taskFilter(1).length }}
             </div>
-            <div class="sort__btn">
-              Завершено
+            <div
+              class="sort__btn"
+              v-bind:class="{ sort__btn_active: active === 3 }"
+              @click="
+                setTasksPull(2);
+                active = 3;
+              "
+            >
+              Завершено {{ taskFilter(2).length }}
             </div>
           </div>
         </div>
@@ -36,7 +68,11 @@
           <th>Фактическая дата окончания</th>
           <th>Действие</th>
         </tr>
-        <task v-for="task in tasks" v-bind:key="task.id" v-bind:id="task.id">
+        <task
+          v-for="task in tasksFind(find)"
+          v-bind:key="task.id"
+          v-bind:id="task.id"
+        >
         </task>
       </table>
     </div>
@@ -46,12 +82,16 @@
 <script>
 import task from "./components/task.vue";
 import modal from "./components/modal.vue";
+import { mapMutations, mapGetters } from "vuex";
 
 export default {
   name: "app",
   data: function() {
     return {
-      modal: false
+      modal: false,
+      inputFind: "",
+      find: "",
+      active: 0
     };
   },
   components: {
@@ -59,14 +99,12 @@ export default {
     modal
   },
   computed: {
-    tasks() {
-      return this.$store.getters.tasks;
-    }
+    ...mapGetters(["tasks", "isModal", "taskFilter", "tasksFind"])
   },
   methods: {
-    ex() {
-      console.log("123");
-      this.modal = !this.modal;
+    ...mapMutations(["openModal", "setTasksPull"]),
+    sort(find) {
+      console.log(find);
     }
   }
 };
@@ -123,6 +161,7 @@ h2 {
   justify-content: space-between;
   align-items: center;
   &__btn {
+    cursor: pointer;
     background-color: #4fc08d;
     padding: 5px 15px;
     background-color: #4fc08d;
